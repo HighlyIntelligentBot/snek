@@ -153,7 +153,7 @@ class Snek(App):
         self.ori = (0, +1)
         self.head = Cell(self.cv, (self.row, self.col), self.size, 'green')
         self.tailcoords = [(self.row, self.col-1), (self.row, self.col-2)]
-        self.score = len(self.tailcoords)
+        self.score = 0
         self.tail = [Cell(self.cv, self.tailcoords[0], self.size, 'green'),
                      Cell(self.cv, self.tailcoords[1], self.size, 'green')]
 
@@ -167,23 +167,25 @@ class Snek(App):
         elif nr < 0 or nc < 0:
             raise GameOver(str(self.score))
         self.head.update((nr, nc))
+        self.tailcoords.insert(0, (self.row, self.col))
         if (nr, nc) == (self.fodder.row, self.fodder.col):
-            self.tailcoords.append(self.tailcoords[-1])
-            self.tail.append(self.tail[-1])
-            self.score = len(self.tail)
-        for i in reversed(self.tailcoords):
-            ind = self.tailcoords.index(i)
-            if ind == 0:
-                self.tail[ind].update((self.row, self.col))
-                self.tailcoords[ind] = (self.row, self.col)
-                break
-            self.tail[ind].update(self.tailcoords[ind-1])
-            self.tailcoords[ind] = self.tailcoords[ind-1]
+            self.tail.append(Cell(self.cv, self.tailcoords[-1], self.size, 'green'))
+            self.score += 1
+            self.fodder.kill()
+            self.fodder = Cell(self.cv, (randint(1, self.maxrows-1),
+                               randint(1, self.maxcols-1)), self.size,
+                               choice(['red', 'white', 'blue', 'yellow', 'cyan']))
+        else:
+            del self.tailcoords[-1]
+        for i in self.tailcoords:
+            n = self.tailcoords.index(i)
+            self.tail[n].update(i)
         self.row += dr
         self.col += dc
 
     def kill_snek(self):
         self.head.kill()
+        self.fodder.kill()
         for i in self.tail:
             i.kill()
 
@@ -198,3 +200,5 @@ def main():
 
 if __name__ == '__main__':
     main()
+
+# TODO: Works, but produces a fuckload of errors. Guess I should fix that
